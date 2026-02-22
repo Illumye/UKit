@@ -1,7 +1,7 @@
 import React, { useContext } from 'react';
 import { View, ScrollView, Image, TouchableOpacity, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { NavigationContainer } from '@react-navigation/native';
+import { NavigationContainer, DefaultTheme } from '@react-navigation/native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 
@@ -144,10 +144,21 @@ const CustomDrawerContentComponent = (props) => {
 
 const Drawer = createDrawerNavigator();
 
-export default ({ background }) => (
-	<NavigationContainer theme={{ colors: { background } }}>
-		<Drawer.Navigator drawerContent={(props) => <CustomDrawerContentComponent {...props} />}>
-			<Drawer.Screen name="Home" component={StackNavigator} />
-		</Drawer.Navigator>
-	</NavigationContainer>
-);
+export default ({ background }) => {
+	const customTheme = {
+		...DefaultTheme,
+		colors: {
+			...DefaultTheme.colors,
+			background: background || DefaultTheme.colors.background,
+		},
+	};
+	
+	return (
+		<NavigationContainer theme={customTheme}>
+			<Drawer.Navigator drawerContent={(props) => <CustomDrawerContentComponent {...props} />}
+				screenOptions={{ headerShown: false }}>
+				<Drawer.Screen name="Home" component={StackNavigator} />
+			</Drawer.Navigator>
+		</NavigationContainer>
+	);
+};

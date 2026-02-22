@@ -1,4 +1,4 @@
-export default Theme = {
+export default {
 	light: {
 		buttonContainer: {
 			backgroundColor: '#ffffff',

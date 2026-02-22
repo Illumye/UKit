@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import { Platform } from 'react-native';
 
 const colors = {
 	red: '',
@@ -61,7 +62,7 @@ const colors50 = {
 	blueGrey: '#ECEFF1',
 };
 
-const Theme = {
+const AppTheme = {
 	primary: '#009ee0',
 	secondary: '#0098c5',
 	light: {
@@ -560,7 +561,7 @@ export default {
 	},
 	stackNavigator: {
 		headerStyle: {
-			backgroundColor: Theme.primary,
+			backgroundColor: AppTheme.primary,
 		},
 		headerTitleStyle: {
 			color: colors.white,
@@ -775,7 +776,7 @@ export default {
 		},
 	},
 	statusBar: {
-		backgroundColor: Theme.primary,
+		backgroundColor: AppTheme.primary,
 		height: Constants.statusBarHeight,
 	},
 	dayView: {},
@@ -792,5 +793,5 @@ export default {
 			},
 		},
 	},
-	Theme,
+	Theme : AppTheme,
 };
