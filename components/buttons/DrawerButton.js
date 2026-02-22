@@ -26,7 +26,7 @@ export default (props) => {
                         alignItems: 'center',
                     }}>
                     {icon}
-                    <View style={{ paddingLeft: 30 }}>
+                    <View style={{ paddingLeft: 30, flex: 1, paddingRight: 10 }}>
                         <Text style={{ fontSize: props.textSize, color: props.fontColor }}>{props.title}</Text>
                     </View>
                 </View>

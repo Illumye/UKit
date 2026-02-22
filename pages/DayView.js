@@ -176,6 +176,7 @@ class DayView extends React.Component {
 										flexDirection: 'row',
 										alignItems: 'center',
 										marginHorizontal: 16,
+										paddingRight: 8,
 									}}>
 									<MaterialIcons
 										name="event-note"
@@ -184,12 +185,13 @@ class DayView extends React.Component {
 									/>
 									<Text
 										style={{
-											textAlign: 'center',
+											// textAlign: 'center',
 											fontSize: 12,
 											marginLeft: 8,
+											// paddingRight: 4,
 											color: theme.font,
 										}}>
-										{Translator.get('TODAY')}
+										{Translator.get('TODAY') + ' '}
 									</Text>
 								</View>
 							</TouchableOpacity>
@@ -201,15 +203,17 @@ class DayView extends React.Component {
 										flexDirection: 'row',
 										alignItems: 'center',
 										marginHorizontal: 16,
+										paddingLeft: 8,
 									}}>
 									<Text
 										style={{
-											textAlign: 'center',
+											// textAlign: 'center',
 											fontSize: 12,
 											marginRight: 8,
+											// paddingLeft: 4,
 											color: theme.font,
 										}}>
-										{Translator.get('WEEK')}
+										{Translator.get('WEEK') + ' '}
 									</Text>
 									<MaterialCommunityIcons
 										name="calendar-range"

@@ -47,7 +47,7 @@ class CalendarDay extends React.Component {
 				style={{
 					width: 64,
 					height: 64,
-					paddingHorizontal: 16,
+					paddingHorizontal: 4,
 					alignItems: 'center',
 					justifyContent: 'center',
 					flex: 1,
@@ -55,12 +55,13 @@ class CalendarDay extends React.Component {
 					borderTopLeftRadius: 4,
 					backgroundColor: CalendarDay.getBackgroundColor(this.props),
 				}}>
-				<View data-month={this.props.item.month()}>
+				<View style={{ width: '100%'}} data-month={this.props.item.month()}>
 					<Text
 						style={{
 							textAlign: 'center',
 							fontSize: 24,
 							marginBottom: 4,
+							width: '100%',
 							color: this.props.item.isSame(this.props.selectedDay, 'day')
 								? theme.lightFont
 								: theme.font,

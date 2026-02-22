@@ -35,7 +35,7 @@ class CalendarWeek extends React.Component {
 				style={{
 					width: 64,
 					height: 64,
-					paddingHorizontal: 16,
+					paddingHorizontal: 4,
 					alignItems: 'center',
 					justifyContent: 'center',
 					flex: 1,
@@ -43,12 +43,13 @@ class CalendarWeek extends React.Component {
 					borderTopLeftRadius: 4,
 					backgroundColor: CalendarWeek.getBackgroundColor(this.props),
 				}}>
-				<View data-month={this.props.item}>
+				<View style={{ width: '100%'}} data-month={this.props.item}>
 					<Text
 						style={{
 							textAlign: 'center',
 							fontSize: 24,
 							marginBottom: 4,
+							width: '100%',
 							color:
 								this.props.week === this.props.selectedWeek
 									? theme.lightFont

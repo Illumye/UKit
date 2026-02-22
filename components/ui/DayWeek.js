@@ -9,6 +9,7 @@ import { upperCaseFirstLetter } from '../../utils';
 import CourseRow from '../CourseRow';
 import style from '../../Style';
 import Translator from '../../utils/translator';
+import Course from '../../pages/Course';
 
 export default class DayWeek extends React.Component {
 	static propTypes = {
@@ -47,14 +48,16 @@ export default class DayWeek extends React.Component {
 			);
 		} else if (this.state.expand) {
 			content = (
-				<FlatList
-					key={this.props.schedule.dayNumber}
-					renderItem={({ item }) => (
-						<CourseRow data={item} theme={theme} navigation={this.props.navigation} />
-					)}
-					data={this.props.schedule.courses}
-					keyExtractor={(item, index) => String(item.dayNumber) + String(index)}
-				/>
+				<View key={this.props.schedule.dayNumber}>
+					{this.props.schedule.courses.map((item, index) => (
+						<CourseRow
+							key={String(item.dayNumber) + String(index)}
+							data={item}
+							theme={theme}
+							navigation={this.props.navigation}
+						/>
+					))}
+				</View>
 			);
 		}
 
@@ -71,7 +74,7 @@ export default class DayWeek extends React.Component {
 							alignItems: 'center',
 						}}>
 						<Ionicons
-							name={this.state.expand ? 'ios-arrow-up' : 'ios-arrow-down'}
+							name={this.state.expand ? 'chevron-up' : 'chevron-down'}
 							size={24}
 							style={{
 								color: this.props.theme.font,
@@ -90,7 +93,7 @@ export default class DayWeek extends React.Component {
 							)}
 						</Text>
 						<Ionicons
-							name={this.state.expand ? 'ios-arrow-up' : 'ios-arrow-down'}
+							name={this.state.expand ? 'chevron-up' : 'chevron-down'}
 							size={24}
 							style={{
 								color: this.props.theme.font,
