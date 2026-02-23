@@ -3,7 +3,7 @@ name: Mobile App Release
 on:
   push:
     tags:
-      - 'v*' # Se déclenche lors d'un push de tag type v1.0.0, v2.1.0, etc.
+      - 'v*'
 
 jobs:
   build:
@@ -30,10 +30,16 @@ jobs:
         run: npm install
 
       - name: 🚀 Build APK on EAS (Cloud)
-        # On utilise le profil preview défini dans ton eas.json
-        # --wait : force GitHub à attendre la fin du build sur les serveurs Expo
-        # --output : télécharge l'APK final directement dans le dossier de l'Action
-        run: eas build --platform android --profile preview --non-interactive --wait --output=./ukit-release.apk
+        id: build_eas
+        # On lance le build sans --output car c'est un build Cloud
+        run: eas build --platform android --profile preview --non-interactive --wait
+
+      - name: 📥 Download APK from Expo
+        run: |
+          # On récupère l'URL du dernier build fini pour le profil preview
+          URL=$(eas build:list --platform android --profile preview --status finished --limit 1 --json | jq -r '.[0].artifacts.buildUrl')
+          echo "Téléchargement de l'APK depuis : $URL"
+          curl -L "$URL" -o ukit-release.apk
 
       - name: 📥 Create GitHub Release
         uses: softprops/action-gh-release@v2
@@ -42,14 +48,7 @@ jobs:
           name: Release ${{ github.ref_name }}
           body: |
             ## Nouvelle version ${{ github.ref_name }}
-            
-            Cette version a été compilée automatiquement via EAS Build.
-            
-            ### Changements notables :
-            - Modernisation vers React Navigation 6.
-            - Passage au moteur Hermes.
-            - Correction des bugs d'affichage Android.
-            - Migration progressive vers TypeScript.
+            Compilation automatique effectuée via EAS Build (Cloud).
           draft: false
           prerelease: false
         env:
