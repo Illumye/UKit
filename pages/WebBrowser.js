@@ -1,14 +1,12 @@
-import React from 'react';
+import React, { useState, useRef, useContext } from 'react';
 import { ActivityIndicator, Linking, Platform, TouchableOpacity, View } from 'react-native';
 import { WebView } from 'react-native-webview';
-import { withNavigation } from '@react-navigation/compat';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import URL from '../utils/URL';
+import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 
-import style from '../Style';
+import style, { tokens } from '../Style';
 import { AppContext } from '../utils/DeviceUtils';
+import URL from '../utils/URL';
 
 const entrypoints = {
 	ent: 'https://ent.u-bordeaux.fr',
@@ -17,188 +15,131 @@ const entrypoints = {
 	apogee: 'https://apogee.u-bordeaux.fr',
 };
 
-class WebBrowser extends React.Component {
-	static contextType = AppContext;
+export default function WebBrowser({ navigation, route }) {
+	const { themeName } = useContext(AppContext);
 
-	constructor(props) {
-		super(props);
+	const webViewRef = useRef(null);
 
-		let uri = URL.UKIT_WEBSITE;
-		if (this.props.route.params) {
-			const { entrypoint, href } = this.props.route.params;
-			if (entrypoint) {
-				if (entrypoints[entrypoint]) {
-					uri = entrypoints[entrypoint];
-				}
-			} else if (href) {
-				uri = href;
-			}
-		}
-
-		this.state = {
-			entrypoint: this.props.route.params.entrypoint,
-			title: null,
-			url: '',
-			uri,
-			canGoBack: false,
-			canGoForward: false,
-			loading: true,
-		};
+	let initialUri = URL.UKIT_WEBSITE;
+	if (route.params) {
+		const { entrypoint, href } = route.params;
+		if (entrypoint && entrypoints[entrypoint]) initialUri = entrypoints[entrypoint];
+		else if (href) initialUri = href;
 	}
 
-	onRefresh = () => {
-		this.webBrowser.reload();
+	const [uri] = useState(initialUri);
+	const [url, setUrl] = useState(initialUri);
+	const [canGoBack, setCanGoBack] = useState(false);
+	const [canGoForward, setCanGoForward] = useState(false);
+	const [loading, setLoading] = useState(true);
+
+	const onRefresh = () => webViewRef.current?.reload();
+	const onBack = () => webViewRef.current?.goBack();
+	const onForward = () => webViewRef.current?.goForward();
+
+	const openURL = async () => {
+		try {
+			const supported = await Linking.canOpenURL(url);
+			if (supported) await Linking.openURL(url);
+		} catch (err) {
+			console.error('An error occurred', err);
+		}
 	};
 
-	onBack = () => {
-		this.webBrowser.goBack();
-	};
+	const theme = style.Theme[themeName];
 
-	onForward = () => {
-		this.webBrowser.goForward();
-	};
+	const renderLoading = () => (
+		<View
+			style={{
+				flex: 1,
+				justifyContent: 'center',
+				alignItems: 'center',
+				backgroundColor: theme.background,
+			}}>
+			<ActivityIndicator size="large" color={theme.primary} />
+		</View>
+	);
 
-	openURL = () => {
-		Linking.canOpenURL(this.state.url)
-			.then((supported) => {
-				if (!supported) {
-					console.warn("Can't handle url: " + this.state.url);
-				} else {
-					return Linking.openURL(this.state.url);
-				}
-			})
-			.catch((err) => console.error('An error occurred', err));
-	};
+	if (!uri) return renderLoading();
 
-	renderLoading = () => {
-		const theme = style.Theme[this.context.themeName];
+	const javascript = Platform.OS !== 'ios' ? 'window.scrollTo(0,0);' : null;
+
+	// ── Bouton de la barre de navigation ──────────────────────────────────────
+	const NavButton = ({ onPress, disabled, iconName, iconLib = 'material', size = 24 }) => {
+		const color = disabled ? theme.border : theme.icon;
+		const Icon = iconLib === 'community' ? MaterialCommunityIcons : MaterialIcons;
 
 		return (
+			<TouchableOpacity
+				onPress={onPress}
+				disabled={disabled}
+				style={{
+					width: 44,
+					height: 44,
+					borderRadius: tokens.radius.md,
+					justifyContent: 'center',
+					alignItems: 'center',
+					backgroundColor: disabled ? 'transparent' : theme.greyBackground,
+				}}>
+				<Icon name={iconName} size={size} color={color} />
+			</TouchableOpacity>
+		);
+	};
+
+	return (
+		<SafeAreaView style={{ flex: 1, backgroundColor: theme.background }}>
+			<WebView
+				ref={webViewRef}
+				javaScriptEnabled={true}
+				domStorageEnabled={true}
+				startInLoadingState={true}
+				renderLoading={renderLoading}
+				injectedJavaScript={javascript}
+				onNavigationStateChange={(e) => {
+					if (!e.loading) {
+						setUrl(e.url);
+						setCanGoBack(e.canGoBack);
+						setCanGoForward(e.canGoForward);
+						setLoading(e.loading);
+						if (e.title) navigation.setParams({ title: e.title });
+					}
+				}}
+				source={{ uri }}
+			/>
+
+			{/* ── Barre de navigation ───────────────────────────────── */}
 			<View
 				style={{
-					flex: 1,
-					justifyContent: 'center',
-					backgroundColor: theme.greyBackground,
+					flexDirection: 'row',
+					justifyContent: 'space-around',
+					alignItems: 'center',
+					paddingHorizontal: tokens.space.sm,
+					paddingVertical: tokens.space.xs,
+					backgroundColor: theme.cardBackground,
+					borderTopWidth: 1,
+					borderTopColor: theme.border,
 				}}>
-				<ActivityIndicator size="large" color={theme.iconColor} />
-			</View>
-		);
-	};
-
-	render() {
-		if (this.state.uri === null) {
-			return this.renderLoading();
-		}
-
-		const theme = style.Theme[this.context.themeName];
-
-		let javascript = null;
-		if (Platform.OS !== 'ios') {
-			javascript = 'window.scrollTo(0,0);';
-		}
-
-		return (
-			<SafeAreaView
-				style={{ flex: 1, flexDirection: 'column', backgroundColor: theme.background }}>
-				<WebView
-					ref={(webBrowser) => (this.webBrowser = webBrowser)}
-					javaScriptEnabled={true}
-					domStorageEnabled={true}
-					startInLoadingState={true}
-					renderLoading={this.renderLoading}
-					injectedJavaScript={javascript}
-					onNavigationStateChange={(e) => {
-						if (!e.loading) {
-							this.setState(
-								{
-									url: e.url,
-									title: e.title,
-									canGoBack: e.canGoBack,
-									loading: e.loading,
-								},
-								() => {
-									if (!!this.state.title) {
-										this.props.navigation.setParams({
-											title: this.state.title,
-										});
-									}
-								},
-							);
-						}
-					}}
-					source={{ uri: this.state.uri }}
+				<NavButton
+					onPress={onBack}
+					disabled={!canGoBack}
+					iconName="navigate-before"
+					size={28}
 				/>
-				<View
-					style={{
-						flexDirection: 'row',
-						justifyContent: 'space-between',
-						paddingHorizontal: 10,
-						paddingVertical: 5,
-						backgroundColor: theme.background,
-					}}>
-					<TouchableOpacity disabled={!this.state.canGoBack} onPress={this.onBack}>
-						<MaterialIcons
-							name="navigate-before"
-							size={30}
-							style={{
-								color: this.state.canGoBack ? theme.icon : 'grey',
-								height: 30,
-								width: 30,
-							}}
-						/>
-					</TouchableOpacity>
-					<TouchableOpacity disabled={!this.state.canGoForward} onPress={this.onForward}>
-						<MaterialIcons
-							name="navigate-next"
-							size={30}
-							style={{
-								color: this.state.canGoForward ? theme.icon : 'grey',
-								height: 30,
-								width: 30,
-							}}
-						/>
-					</TouchableOpacity>
-
-					<TouchableOpacity disabled={this.state.loading} onPress={this.onRefresh}>
-						<MaterialIcons
-							name="refresh"
-							size={30}
-							style={{
-								color: this.state.loading ? 'grey' : theme.icon,
-								height: 30,
-								width: 30,
-							}}
-						/>
-					</TouchableOpacity>
-
-					<TouchableOpacity
-						onPress={this.openURL}
-						style={{
-							paddingRight: 16,
-							flexDirection: 'row',
-							justifyContent: 'center',
-							alignItems: 'center',
-						}}>
-						<View>
-							{Platform.OS === 'ios' ? (
-								<MaterialCommunityIcons
-									name="apple-safari"
-									size={25}
-									style={{ color: theme.icon, height: 25, width: 25 }}
-								/>
-							) : (
-								<MaterialCommunityIcons
-									name="google-chrome"
-									size={25}
-									style={{ color: theme.icon, height: 25, width: 25 }}
-								/>
-							)}
-						</View>
-					</TouchableOpacity>
-				</View>
-			</SafeAreaView>
-		);
-	}
+				<NavButton
+					onPress={onForward}
+					disabled={!canGoForward}
+					iconName="navigate-next"
+					size={28}
+				/>
+				<NavButton onPress={onRefresh} disabled={loading} iconName="refresh" size={24} />
+				<NavButton
+					onPress={openURL}
+					disabled={false}
+					iconName={Platform.OS === 'ios' ? 'apple-safari' : 'google-chrome'}
+					iconLib="community"
+					size={22}
+				/>
+			</View>
+		</SafeAreaView>
+	);
 }
-
-export default withNavigation(WebBrowser);

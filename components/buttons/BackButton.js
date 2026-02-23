@@ -26,7 +26,7 @@ export default class BackButton extends React.PureComponent {
 			<TouchableOpacity onPress={this._onPress} style={style.backButton}>
 				<View>
 					<Ionicons
-						name={Platform.OS === 'ios' ? 'ios-arrow-back' : 'md-arrow-back'}
+						name="arrow-back"
 						size={32}
 						style={{
 							color: '#F0F0F0',

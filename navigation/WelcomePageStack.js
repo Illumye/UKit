@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { CardStyleInterpolators } from '@react-navigation/stack';
-import { createNativeStackNavigator } from 'react-native-screens/native-stack';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { NavigationContainer } from '@react-navigation/native';
 
 import SettingsManager from '../utils/SettingsManager';
@@ -19,10 +18,8 @@ const WelcomeNavigator = ({ changeState, navigatorState }) => {
 		<Stack.Navigator
 			initialRouteName="FirstWelcomePage"
 			screenOptions={{
-				stackAnimation: 'slide_from_right',
 				headerShown: false,
-				cardStyleInterpolator: CardStyleInterpolators.forHorizontalIOS,
-				cardStyle: { opacity: 1 },
+				animation: 'slide_from_right', // Nouvelle syntaxe pour l'animation
 			}}>
 			<Stack.Screen name="FirstWelcomePage">
 				{(props) => (
@@ -65,6 +62,7 @@ const WelcomeNavigator = ({ changeState, navigatorState }) => {
 	);
 };
 
+// ... Le reste du fichier (export default (props) => { ... }) ne bouge pas.
 export default (props) => {
 	const [WelcomeSettings, setWelcomeSettings] = useState({
 		language: 'fr',

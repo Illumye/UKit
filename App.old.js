@@ -1,4 +1,3 @@
-import { GestureHandlerRootView } from 'react-native-gesture-handler';
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Animated, Image, StyleSheet, View } from 'react-native';
 import { Asset } from 'expo-asset';
@@ -15,12 +14,23 @@ import {
 	SimpleLineIcons,
 } from '@expo/vector-icons';
 import { Montserrat_500Medium } from '@expo-google-fonts/montserrat';
+import * as Sentry from 'sentry-expo';
 
 import RootContainer from './containers/rootContainer';
 import SettingsManager from './utils/SettingsManager';
 import DataManager from './utils/DataManager';
 
-// Garder le splash screen visible pendant le chargement
+if (Constants.expoConfig.extra.sentryDSN) {
+	Sentry.init({
+		dsn: Constants.expoConfig.extra.sentryDSN,
+		enableInExpoDevelopment: false,
+		debug: false, // Sentry will try to print out useful debugging information if something goes wrong with sending an event. Set this to `false` in production.
+	});
+} else {
+	console.warn('No Sentry URL provided.');
+}
+
+// Keep the splash screen visible while we fetch resources
 SplashScreen.preventAutoHideAsync();
 
 function AnimatedAppLoader({ children }) {
@@ -44,18 +54,31 @@ function AnimatedAppLoader({ children }) {
 					Entypo.font,
 				]);
 				await DataManager.loadData();
+
 				await SettingsManager.loadSettings();
 
 				await Promise.all([...imageAssets, ...fontAssets]);
 			} catch (e) {
 				console.warn(e);
 			} finally {
+				// Tell the application to render
 				setAppIsReady(true);
 			}
 		}
 
 		prepare();
 	}, []);
+
+	const onLayoutRootView = useCallback(async () => {
+		if (appIsReady) {
+			// This tells the splash screen to hide immediately! If we call this after
+			// `setAppIsReady`, then we may see a blank screen while the app is
+			// loading its initial state and rendering its first pixels. So instead,
+			// we hide the splash screen once we know the root view has already
+			// performed layout.
+			setTimeout(() => SplashScreen.hideAsync());
+		}
+	}, [appIsReady]);
 
 	if (!appIsReady) {
 		return null;
@@ -84,13 +107,11 @@ function AnimatedSplashScreen({ children, image }) {
 			await SplashScreen.hideAsync();
 		} catch (e) {
 			console.log('err', e);
+			// handle errors
 		} finally {
 			setAppReady(true);
 		}
 	}, []);
-
-	// Correction de Constants.manifest vers Constants.expoConfig
-	const splashConfig = Constants.expoConfig?.splash || {};
 
 	return (
 		<View style={{ flex: 1 }}>
@@ -101,7 +122,7 @@ function AnimatedSplashScreen({ children, image }) {
 					style={[
 						StyleSheet.absoluteFill,
 						{
-							backgroundColor: splashConfig.backgroundColor || '#ffffff',
+							backgroundColor: Constants.manifest.splash.backgroundColor,
 							opacity: animation,
 						},
 					]}>
@@ -109,7 +130,7 @@ function AnimatedSplashScreen({ children, image }) {
 						style={{
 							width: '100%',
 							height: '100%',
-							resizeMode: splashConfig.resizeMode || 'contain',
+							resizeMode: Constants.manifest.splash.resizeMode || 'contain',
 						}}
 						source={image}
 						onError={(e) => console.log(e.nativeEvent.error)}
@@ -137,11 +158,9 @@ function cacheImages(images) {
 }
 
 export default function App() {
-    return (
-        <GestureHandlerRootView style={{ flex: 1 }}>
-            <AnimatedAppLoader>
-                <RootContainer />
-            </AnimatedAppLoader>
-        </GestureHandlerRootView>
-    );
+	return (
+		<AnimatedAppLoader>
+			<RootContainer />
+		</AnimatedAppLoader>
+	);
 }
