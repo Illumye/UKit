@@ -5,6 +5,13 @@ on:
     tags:
       - 'v*'
 
+  workflow_dispatch:
+    inputs:
+      skip_build:
+        description: 'Sauter le build EAS (récupérer le dernier APK fini) ?'
+        type: boolean
+        default: false
+
 jobs:
   build:
     name: Build and Release APK
@@ -32,6 +39,7 @@ jobs:
       - name: 🚀 Build APK on EAS (Cloud)
         id: build_eas
         # On lance le build sans --output car c'est un build Cloud
+        if: github.event.inputs.skip_build != 'true'
         run: eas build --platform android --profile preview --non-interactive --wait
 
       - name: 📥 Download APK from Expo
