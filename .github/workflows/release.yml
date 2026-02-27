@@ -11,6 +11,11 @@ on:
         description: 'Sauter le build EAS (récupérer le dernier APK fini) ?'
         type: boolean
         default: false
+      target_tag:
+        description: 'Tag à utiliser pour la release (ex: v5.1.0)'
+        type: string
+        required: true
+        default: ''
 
 permissions:
   contents: write
@@ -56,7 +61,8 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           files: ./ukit-release.apk
-          name: Release ${{ github.ref_name }}
+          tag_name: ${{ github.ref_name != '' && github.ref_name || github.event.inputs.target_tag }}
+          name: Release ${{ github.ref_name != '' && github.ref_name || github.event.inputs.target_tag }}
           body: |
             ## Nouvelle version ${{ github.ref_name }}
             Compilation automatique effectuée via EAS Build (Cloud).
