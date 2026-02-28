@@ -1,7 +1,7 @@
 # UKit
 
-[![Mobile App Release](https://github.com/KAELab/UKit/actions/workflows/release.yml/badge.svg)](https://github.com/KAELab/UKit/actions)
-[![Latest Release](https://img.shields.io/github/v/release/KAELab/UKit?label=APK)](https://github.com/KAELab/UKit/releases/latest)
+[![Mobile App Release](https://github.com/KAE-Lab/UKit/actions/workflows/release.yml/badge.svg)](https://github.com/KAE-Lab/UKit/actions)
+[![Latest Release](https://img.shields.io/github/v/release/KAE-Lab/UKit?label=APK)](https://github.com/KAE-Lab/UKit/release/latest)
 
 UKit est une application compagnon moderne destinée aux étudiants de l'Université de Bordeaux. Ce projet est un fork majeur du dépôt initial, restructuré pour moderniser l'architecture globale (React Navigation v6, moteur Hermes) et sécuriser la gestion des données.
 
