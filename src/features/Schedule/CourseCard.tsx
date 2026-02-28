@@ -1,7 +1,6 @@
 import React from 'react';
 import { Linking, Text, TouchableOpacity, View, Modal, TouchableWithoutFeedback, Platform } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { Polygon, Svg } from 'react-native-svg';
+import { WebView } from 'react-native-webview';
 import { MaterialCommunityIcons, MaterialIcons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import Toast from 'react-native-root-toast';
@@ -15,14 +14,34 @@ import { getLocations, getLocationsInText } from '../../shared/services/AppCore'
 import { AppContext } from '../../shared/services/AppCore';
 import { URL } from '../../shared/services/DataService';
 
+// ── TYPESCRIPT INTERFACES ───────────────────────────────────────────────
+export interface CourseData {
+	subject: string;
+	date: { start: string; end: string };
+	schedule: string;
+	description: string;
+	color?: string;
+	category: string;
+	UE?: string;
+	starttime: string;
+	endtime: string;
+}
+
+interface CalendarNewEventPromptProps {
+	popupVisible: boolean;
+	closePopup: () => void;
+	openPopup: () => void;
+	theme: any;
+	data: CourseData;
+}
+
 // ── MODALE D'AJOUT AU CALENDRIER ─────────────────────────────────────────
-export class CalendarNewEventPrompt extends React.Component {
-	constructor(props) {
+export class CalendarNewEventPrompt extends React.Component<CalendarNewEventPromptProps> {
+	constructor(props: CalendarNewEventPromptProps) {
 		super(props);
 	}
 
 	closePopup = () => this.props.closePopup();
-
 	openPopup = () => this.props.openPopup();
 
 	getCalendarPermissions = async () => {
@@ -41,7 +60,7 @@ export class CalendarNewEventPrompt extends React.Component {
 			const calendar = await Calendar.getDefaultCalendarAsync();
 			return calendar.id;
 		} else {
-			let id = null;
+			let id: string | null = null;
 			const calendars = await Calendar.getCalendarsAsync();
 			for (const calendar of calendars) {
 				if (calendar.isPrimary) {
@@ -60,6 +79,8 @@ export class CalendarNewEventPrompt extends React.Component {
 	addCalendarEventWithPermissions = async () => {
 		try {
 			const calendarId = await this.getCalendarId();
+			if (!calendarId) return;
+
 			const details = {
 				title: this.props.data.subject,
 				startDate: new Date(this.props.data.date.start),
@@ -110,32 +131,32 @@ export class CalendarNewEventPrompt extends React.Component {
 				visible={this.props.popupVisible}
 				onRequestClose={this.closePopup}>
 				<TouchableWithoutFeedback onPress={this.closePopup} accessible={false}>
-					<View style={theme.popup.background}>
+					<View style={theme.popup.background as any}>
 						<TouchableWithoutFeedback accessible={false}>
-							<View style={theme.popup.container}>
-								<View style={theme.popup.header}>
-									<Text style={theme.popup.textHeader}>
+							<View style={theme.popup.container as any}>
+								<View style={theme.popup.header as any}>
+									<Text style={theme.popup.textHeader as any}>
 										{Translator.get('ADD_TO_CALENDAR').toUpperCase()}
 									</Text>
 								</View>
-								<Text style={theme.popup.textDescription}>
+								<Text style={theme.popup.textDescription as any}>
 									{Translator.get(
 										'ADD_TO_CALENDAR_DESCRIPTION',
 										this.props.data.subject,
 									)}
 								</Text>
-								<View style={theme.popup.buttonContainer}>
+								<View style={theme.popup.buttonContainer as any}>
 									<TouchableOpacity
-										style={theme.popup.buttonSecondary}
+										style={theme.popup.buttonSecondary as any}
 										onPress={this.closePopup}>
-										<Text style={theme.popup.buttonTextSecondary}>
+										<Text style={theme.popup.buttonTextSecondary as any}>
 											{Translator.get('CANCEL')}
 										</Text>
 									</TouchableOpacity>
 									<TouchableOpacity
-										style={theme.popup.buttonMain}
+										style={theme.popup.buttonMain as any}
 										onPress={this.addCalendarEvent}>
-										<Text style={theme.popup.buttonTextMain}>
+										<Text style={theme.popup.buttonTextMain as any}>
 											{Translator.get('CONFIRM')}
 										</Text>
 									</TouchableOpacity>
@@ -150,10 +171,24 @@ export class CalendarNewEventPrompt extends React.Component {
 }
 
 // ── COMPOSANT LIGNE DE COURS ─────────────────────────────
-class CourseRow extends React.Component {
-	constructor(props) {
+interface CourseRowProps {
+	data: CourseData;
+	theme: any;
+	readOnly?: boolean;
+	navigation?: any;
+}
+
+interface CourseRowState {
+	backgroundColor: string;
+	borderColor: string;
+	lineColor: string;
+	popupVisible: boolean;
+}
+
+class CourseRow extends React.Component<CourseRowProps, CourseRowState> {
+	constructor(props: CourseRowProps) {
 		super(props);
-		const lineColor = props.theme.courses[props.data?.color] ?? props.theme.courses.default;
+		const lineColor = props.theme.courses[props.data?.color ?? 'default'] ?? props.theme.courses.default;
 
 		this.state = {
 			backgroundColor: props.theme.eventBackground,
@@ -163,9 +198,9 @@ class CourseRow extends React.Component {
 		};
 	}
 
-	static getDerivedStateFromProps(nextProps, prevState) {
+	static getDerivedStateFromProps(nextProps: CourseRowProps, prevState: CourseRowState) {
 		const lineColor =
-			nextProps.theme.courses[nextProps.data?.color] ?? nextProps.theme.courses.default;
+			nextProps.theme.courses[nextProps.data?.color ?? 'default'] ?? nextProps.theme.courses.default;
 
 		const backgroundColor = nextProps.theme.eventBackground;
 		const borderColor = nextProps.theme.eventBorder;
@@ -194,10 +229,9 @@ class CourseRow extends React.Component {
 	render() {
 		const { theme } = this.props;
 
-		// ── Pas de cours ──────────────────────────────────────────────
 		if (this.props.data.category === 'nocourse') {
 			return (
-				<View style={style.schedule.course.noCourse}>
+				<View style={style.schedule.course.noCourse as any}>
 					<MaterialCommunityIcons
 						name="calendar-blank-outline"
 						size={36}
@@ -206,7 +240,7 @@ class CourseRow extends React.Component {
 					/>
 					<Text
 						style={[
-							style.schedule.course.noCourseText,
+							style.schedule.course.noCourseText as any,
 							{ color: theme.fontSecondary },
 						]}>
 						{Translator.get('NO_CLASS_THIS_DAY')}
@@ -221,9 +255,8 @@ class CourseRow extends React.Component {
 
 		const isLargeMode = this.props.readOnly === true;
 
-		// ── UE ────────────────────────────────────────────────────────
 		const ue = this.props.data.UE ? (
-			<View style={[style.schedule.course.line, { alignItems: 'center' }]}>
+			<View style={[style.schedule.course.line as any, { alignItems: 'center' }]}>
 				<MaterialIcons
 					name="code"
 					size={14}
@@ -234,28 +267,26 @@ class CourseRow extends React.Component {
 					style={{
 						fontSize: tokens.fontSize.xs,
 						color: theme.fontSecondary,
-						fontWeight: tokens.fontWeight.medium,
+						fontWeight: tokens.fontWeight.medium as any,
 					}}>
 					{this.props.data.UE}
 				</Text>
 			</View>
 		) : null;
 
-		// ── Sujet ─────────────────────────────────────────────────────
 		const subject =
 			this.props.data.subject !== 'N/C' ? (
-				<Text style={[style.schedule.course.title, { color: theme.font, flex: 1 }]}>
+				<Text style={[style.schedule.course.title as any, { color: theme.font, flex: 1 }]}>
 					{this.props.data.subject}
 				</Text>
 			) : null;
 
-		// ── Annotations ───────────────────────────────────────────────
 		const annotations =
 			!isLargeMode && this.props.data.description?.length > 0
 				? this.props.data.description.split('\n').map((annotation, index) => {
 						if (!annotation.trim()) return null;
 
-						let iconName = 'info-outline';
+						let iconName: any = 'info-outline';
 						if (index === 0) iconName = 'group';
 						else if (index === 1) iconName = 'person';
 						else if (index === 2) iconName = 'room';
@@ -265,7 +296,7 @@ class CourseRow extends React.Component {
 							<View
 								key={index}
 								style={[
-									style.schedule.course.line,
+									style.schedule.course.line as any,
 									{ alignItems: 'flex-start', marginTop: tokens.space.xs },
 								]}>
 								<MaterialIcons
@@ -287,11 +318,10 @@ class CourseRow extends React.Component {
 				  })
 				: null;
 
-		// ── Carte du cours ────────────────────────────────────────────
 		const content = (
 			<View
 				style={[
-					style.schedule.course.root,
+					style.schedule.course.root as any,
 					{
 						flex: 0,
 						minHeight: 120,
@@ -304,21 +334,20 @@ class CourseRow extends React.Component {
 						borderWidth: 1,
 						borderColor: this.state.borderColor,
 						overflow: 'hidden',
-						...tokens.shadow.sm,
+						...(tokens.shadow.sm as any),
 					},
 				]}>
-				<View style={style.schedule.course.row}>
-					{/* ── Colonne heures ──────────────────────────────── */}
+				<View style={style.schedule.course.row as any}>
 					<View
 						style={[
-							style.schedule.course.hours,
+							style.schedule.course.hours as any,
 							{
 								backgroundColor: `${this.state.lineColor}18`,
 								borderRightWidth: 1,
 								borderRightColor: `${this.state.lineColor}44`,
 							},
 						]}>
-						<Text style={[style.schedule.course.hoursText, { color: theme.font }]}>
+						<Text style={[style.schedule.course.hoursText as any, { color: theme.font }]}>
 							{this.props.data.starttime}
 						</Text>
 						<View
@@ -333,18 +362,16 @@ class CourseRow extends React.Component {
 						/>
 						<Text
 							style={[
-								style.schedule.course.hoursText,
+								style.schedule.course.hoursText as any,
 								{ color: theme.fontSecondary },
 							]}>
 							{this.props.data.endtime}
 						</Text>
 					</View>
 
-					{/* ── Contenu ─────────────────────────────────────── */}
 					<View
-						style={[style.schedule.course.contentBlock, { padding: tokens.space.sm }]}>
-						{/* Titre + catégorie */}
-						<View style={style.schedule.course.contentType}>
+						style={[style.schedule.course.contentBlock as any, { padding: tokens.space.sm }]}>
+						<View style={style.schedule.course.contentType as any}>
 							{subject}
 							{this.props.data.category !== this.props.data.subject && (
 								<View
@@ -359,7 +386,7 @@ class CourseRow extends React.Component {
 										style={{
 											fontSize: tokens.fontSize.xs,
 											color: this.state.lineColor,
-											fontWeight: tokens.fontWeight.semibold,
+											fontWeight: tokens.fontWeight.semibold as any,
 										}}>
 										{this.props.data.category}
 									</Text>
@@ -376,7 +403,7 @@ class CourseRow extends React.Component {
 									.map((line, index) => {
 										if (!line.trim()) return null;
 
-										let iconName = 'info-outline';
+										let iconName: any = 'info-outline';
 										if (index === 0) iconName = 'group';
 										else if (index === 1) iconName = 'person';
 										else if (index === 2) iconName = 'room';
@@ -386,7 +413,7 @@ class CourseRow extends React.Component {
 											<View
 												key={index}
 												style={[
-													style.schedule.course.line,
+													style.schedule.course.line as any,
 													{ alignItems: 'flex-start' },
 												]}>
 												<MaterialIcons
@@ -420,11 +447,7 @@ class CourseRow extends React.Component {
 
 		if (isLargeMode) {
 			return (
-				<View
-					style={{
-						flex: 0,
-						width: '100%',
-					}}>
+				<View style={{ flex: 0, width: '100%' }}>
 					{content}
 				</View>
 			);
@@ -450,23 +473,26 @@ class CourseRow extends React.Component {
 	}
 }
 
-export function CourseRowWithNavigation(props) {
+export function CourseRowWithNavigation(props: any) {
 	const navigation = useNavigation();
 	return <CourseRow {...props} navigation={navigation} />;
 }
 
 // ── PAGE DÉTAILS DU COURS (Avec la Map) ──────────────────────────────────
-const mapStyle = [
-	{ featureType: 'landscape.man_made', elementType: 'geometry.stroke', stylers: [{ color: '#ff0000' }] },
-	{ featureType: 'landscape.man_made', elementType: 'labels', stylers: [{ color: '#ff0000' }] },
-	{ featureType: 'poi', elementType: 'labels.text.fill', stylers: [{ color: '#000000' }] },
-	{ featureType: 'poi', elementType: 'labels.text.stroke', stylers: [{ color: '#ffffff' }] },
-];
+interface CourseProps {
+	route: { params: { data: CourseData } };
+	navigation: any;
+}
 
-class Course extends React.Component {
+interface CourseState {
+	data: CourseData;
+	locations: any[];
+}
+
+class Course extends React.Component<CourseProps, CourseState> {
 	static contextType = AppContext;
 
-	constructor(props) {
+	constructor(props: CourseProps) {
 		super(props);
 		const { data } = this.props.route.params;
 
@@ -476,11 +502,8 @@ class Course extends React.Component {
 		};
 	}
 
-	onPressGoogleMaps = () => {
+	onPressExternalMap = () => {
 		let link = URL.MAP + `search/?api=1&query=${this.state.locations[0].lat},${this.state.locations[0].lng}`;
-		if (this.state.locations[0].placeID) {
-			link = URL.MAP + `search/?api=1&query=${this.state.locations[0].lat},${this.state.locations[0].lng}&query_place_id=${this.state.locations[0].placeID}`;
-		}
 
 		Linking.canOpenURL(link)
 			.then((supported) => {
@@ -494,7 +517,7 @@ class Course extends React.Component {
 	};
 
 	componentDidMount() {
-		let locations = [];
+		let locations: any[] = [];
 		this.props.navigation.setParams({ title: this.state.data.schedule });
 
 		const descLines = (this.state.data.description ?? '').split('\n');
@@ -517,74 +540,89 @@ class Course extends React.Component {
 	}
 
 	render() {
-		const themeName = this.context.themeName ?? 'light';
-		const theme = style.Theme[themeName];
+		const appContext = this.context as any;
+		const themeName = appContext?.themeName ?? 'light';
+		const theme = (style.Theme as any)[themeName];
 
 		let map = null;
 		if (this.state.locations.length > 0) {
+            const centerLat = this.state.locations[0].lat;
+            const centerLng = this.state.locations[0].lng;
+
+			// Génération du code Leaflet pour tes marqueurs customisés SVG
+            const markersJs = this.state.locations.map((location: any) => {
+                const title = location.title || 'Salle';
+                return `
+                    var iconHTML = \`
+                        <div style="display: flex; flex-direction: column; align-items: center; padding-bottom: 8px;">
+                            <div style="background-color: ${theme.primary}; padding: 4px 8px; border-radius: 4px; box-shadow: 0px 4px 6px rgba(0,0,0,0.3);">
+                                <span style="color: #FFFFFF; font-weight: bold; font-size: 12px; font-family: sans-serif;">
+                                    ${title}
+                                </span>
+                            </div>
+                            <svg height="10" width="12" style="margin-top: -1px;">
+                                <polygon points="0,0 6,10 12,0" fill="${theme.primary}" />
+                            </svg>
+                        </div>
+                    \`;
+                    var customIcon = L.divIcon({
+                        className: 'custom-marker',
+                        html: iconHTML,
+                        iconSize: [100, 50],
+                        iconAnchor: [50, 45] // Centre parfaitement la pointe de ta flèche sur les coordonnées
+                    });
+                    L.marker([${location.lat}, ${location.lng}], {icon: customIcon}).addTo(map);
+                `;
+            }).join('\n');
+
+			// Le code HTML complet embarqué dans l'application
+            const mapHtml = `
+                <!DOCTYPE html>
+                <html>
+                <head>
+                    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+                    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+                    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+                    <style>
+                        body { padding: 0; margin: 0; background-color: ${theme.greyBackground}; }
+                        html, body, #map { height: 100%; width: 100%; }
+                        .leaflet-control-attribution { display: none; } /* Cache le texte OpenStreetMap pour un design plus épuré */
+                    </style>
+                </head>
+                <body>
+                    <div id="map"></div>
+                    <script>
+                        var map = L.map('map', {zoomControl: false}).setView([${centerLat}, ${centerLng}], 17);
+                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                            maxZoom: 19
+                        }).addTo(map);
+                        ${markersJs}
+                    </script>
+                </body>
+                </html>
+            `;
+
 			map = (
 				<View style={{ flex: 1 }}>
-					<MapView
-						style={{ flex: 1 }}
-						provider={Platform.OS === 'android' ? MapView.PROVIDER_GOOGLE : undefined}
-						initialRegion={{
-							latitude: this.state.locations[0].lat,
-							longitude: this.state.locations[0].lng,
-							latitudeDelta: 0.005,
-							longitudeDelta: 0.005,
-						}}
-						customMapStyle={mapStyle}
-						showsMyLocationButton={false}
-						loadingEnabled={true}
-						showsCompass={true}>
-						{this.state.locations.map((location, index) => (
-							<Marker
-								key={index}
-								coordinate={{
-									latitude: location.lat,
-									longitude: location.lng,
-								}}>
-								<View
-									style={{
-										flexDirection: 'column',
-										alignItems: 'center',
-										paddingBottom: tokens.space.sm,
-									}}>
-									<View
-										style={{
-											backgroundColor: theme.primary,
-											paddingHorizontal: tokens.space.sm,
-											paddingVertical: tokens.space.xs,
-											borderRadius: tokens.radius.sm,
-											...tokens.shadow.md,
-										}}>
-										<Text
-											style={{
-												color: '#FFFFFF',
-												fontWeight: tokens.fontWeight.bold,
-												fontSize: tokens.fontSize.sm,
-											}}>
-											{location.title}
-										</Text>
-									</View>
-									<Svg height={10} width={12}>
-										<Polygon points="0,0 6,10 12,0" fill={theme.primary} />
-									</Svg>
-								</View>
-							</Marker>
-						))}
-					</MapView>
+                    <WebView
+                        originWhitelist={['*']}
+                        source={{ html: mapHtml }}
+                        style={{ flex: 1, backgroundColor: theme.greyBackground }}
+                        scrollEnabled={false} // Empêche le webview de scroller, c'est la carte qui prend le relais
+                        showsVerticalScrollIndicator={false}
+                        showsHorizontalScrollIndicator={false}
+                    />
 
 					<View style={{ position: 'absolute', top: tokens.space.sm, right: tokens.space.sm }}>
 						<TouchableOpacity
-							onPress={this.onPressGoogleMaps}
+							onPress={this.onPressExternalMap}
 							style={{
 								backgroundColor: theme.cardBackground,
 								borderRadius: tokens.radius.md,
 								padding: tokens.space.sm,
-								...tokens.shadow.md,
+								...(tokens.shadow.md as any),
 							}}>
-							<MaterialCommunityIcons name="google-maps" size={28} color="#4285F4" />
+							<MaterialCommunityIcons name="map-search-outline" size={28} color={theme.accent} />
 						</TouchableOpacity>
 					</View>
 				</View>
@@ -593,10 +631,9 @@ class Course extends React.Component {
 
 		return (
 			<SafeAreaView 
-			edges={['bottom', 'left', 'right']}
-			style={{ flex: 1, backgroundColor: theme.greyBackground }}
+				edges={['bottom', 'left', 'right']}
+				style={{ flex: 1, backgroundColor: theme.greyBackground }}
 			>
-				{/* Card du cours */}
 				<View
 					style={{
 						flex: 0,
@@ -607,7 +644,6 @@ class Course extends React.Component {
 					<CourseRow data={this.state.data} theme={theme} readOnly={true} />
 				</View>
 
-				{/* Carte */}
 				{map && (
 					<View
 						style={{
@@ -618,7 +654,7 @@ class Course extends React.Component {
 							overflow: 'hidden',
 							borderWidth: 1,
 							borderColor: theme.border,
-							...tokens.shadow.sm,
+							...(tokens.shadow.sm as any),
 						}}>
 						{map}
 					</View>

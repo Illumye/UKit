@@ -7,7 +7,7 @@ export default {
 	privacy: 'public',
 	githubUrl: 'https://github.com/KAE-Lab/UKit',
 	platforms: ['ios', 'android'],
-	version: '5.2.0',
+	version: '5.2.1',
 	orientation: 'portrait',
 	primaryColor: '#006F9F',
 	icon: './assets/icons/ios.png',
@@ -21,10 +21,6 @@ export default {
 		icon: './assets/icons/ios.png',
 		supportsTablet: true,
 		bundleIdentifier: 'org.kaelab.ukit',
-		config: {
-			googleMapsApiKey: 'AIzaSyB5JDcHP9k40e0ozKCSA9ObjPYusnhETBI',
-			usesNonExemptEncryption: false,
-		},
 		infoPlist: {
 			NSCalendarsUsageDescription:
 				'This app use calendar access to synchronize your group calendar to a external calendar (only if the feature is enabled in Settings).',
@@ -36,11 +32,6 @@ export default {
 	},
 	android: {
 		package: 'org.kaelab.ukit',
-		config: {
-			googleMaps: {
-				apiKey: 'AIzaSyD8qcNLeWqiyS5KK4hWiCkznZkD3GbhFrI',
-			},
-		},
 		adaptiveIcon: {
 			foregroundImage: './assets/icons/android_foreground.png',
 			backgroundImage: './assets/icons/android_background.png',
