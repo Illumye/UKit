@@ -15,6 +15,8 @@ import DayView from '../../features/Schedule/DayView';
 import WeekView from '../../features/Schedule/WeekView';
 import CrousScreen from '../../features/Crous/CrousScreen';
 import CrousMenuScreen from '../../features/Crous/CrousMenuScreen';
+import LibraryScreen from '../../features/Library/LibraryScreen';
+import LibraryDetailsScreen from '../../features/Library/LibraryDetailsScreen';
 
 import style from '../theme/Theme';
 import { BackButton } from '../ui/Button'; 
@@ -109,6 +111,40 @@ export default function StackNavigator() {
 										navigation.navigate('Geolocation', { 
 											title: route.params?.restaurantName,
 											location: route.params?.location 
+										});
+									}} 
+									style={{ marginRight: 16 }}
+								>
+									<MaterialCommunityIcons name="map-marker-radius" size={28} color="#FFFFFF" />
+								</TouchableOpacity>
+							);
+
+							const leftButton = <BackButton backAction={navigation.goBack} />;
+							return NavBarHelper({ headerLeft: () => leftButton, headerRight: () => rightButton, title, themeName });
+						}} 
+					/>
+
+					{/* ── BIBLIOTHÈQUES (BU) ── */}
+					<Stack.Screen
+						name="Library"
+						component={LibraryScreen}
+						options={{
+							title: Translator.get('LIBRARIES') ?? 'Bibliothèques'
+						}}
+					/>
+					<Stack.Screen 
+						name="LibraryDetails" 
+						component={LibraryDetailsScreen} 
+						options={({ navigation, route }) => {
+							const title = treatTitle(route.params?.library?.name ?? Translator.get('LIBRARY_DETAILS'));
+							
+							// Le bouton d'ouverture de la carte (idem CROUS)
+							const rightButton = (
+								<TouchableOpacity 
+									onPress={() => {
+										navigation.navigate('Geolocation', { 
+											title: route.params?.library?.name,
+											location: { lat: route.params?.library?.lat, lng: route.params?.library?.lng }
 										});
 									}} 
 									style={{ marginRight: 16 }}

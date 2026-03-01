@@ -105,7 +105,7 @@ const CustomDrawerContentComponent = (props) => {
                             color: theme.icon, fontSize: tokens.fontSize.md, fontWeight: 'bold',
                             paddingTop: tokens.space.lg, paddingBottom: tokens.space.sm, paddingHorizontal: tokens.space.lg,
                         }}>
-                            CROUS
+                            {Translator.get('CAMPUS') ?? 'Campus'}
                     </Text>
                     <Button
                         title={Translator.get('RESTAURANTS_U')}
@@ -113,7 +113,13 @@ const CustomDrawerContentComponent = (props) => {
                         color={theme.icon} fontColor={theme.font}
                         onPress={() => props.navigation.navigate('Stack', { screen: 'Crous' })}
                     />
-
+                    <Button
+                        title={Translator.get('LIBRARIES')}
+                        size={22} textSize={tokens.fontSize.sm} icon={'local-library'}
+                        color={theme.icon} fontColor={theme.font}
+                        onPress={() => props.navigation.navigate('Stack', { screen: 'Library' })}
+                    />
+    
                     {/* Application */}
                     <Text style={{
                             color: theme.icon, fontSize: tokens.fontSize.md, fontWeight: 'bold',
